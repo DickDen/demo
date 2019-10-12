@@ -1,4 +1,4 @@
-package niotest2;
+package niotest2.service;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -21,6 +21,8 @@ public class MultiplexerTimerServer implements Runnable {
 
 	private Selector selector;
 
+	private ServerSocketChannel serverChannel;
+
 	private volatile boolean stop;
 
 	/**
@@ -34,7 +36,7 @@ public class MultiplexerTimerServer implements Runnable {
 			// 资源初始化，创建多路复用器Selector，ServerSocketChannel，对Channel和TCP参数进行配置
 			selector = Selector.open();
 			// ServerSocketChannel 是一个可以监听新进来的TCP连接的通道, 就像标准IO中的ServerSocket一样
-			ServerSocketChannel serverChannel = ServerSocketChannel.open();
+			serverChannel = ServerSocketChannel.open();
 			// 将ServerSocketChannel设置为异步非阻塞模式，它的backlog为1024
 			serverChannel.configureBlocking(false);
 			serverChannel.socket().bind(new InetSocketAddress(port), 1024);
@@ -104,13 +106,13 @@ public class MultiplexerTimerServer implements Runnable {
 		if (key.isValid()) {
 			if (key.isAcceptable()) {
 				// Accept the new connection
-				ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+				ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
 				// 通过ServerSocketChannel的accept接受客户端的连接请求并创建SocketChannel实例
-				SocketChannel socketChannel = serverSocketChannel.accept();
+				SocketChannel sc = ssc.accept();
 				// 设置SocketChannel为异步非阻塞
-				socketChannel.configureBlocking(false);
+				sc.configureBlocking(false);
 				// Add the new connection to the selection
-				socketChannel.register(selector, SelectionKey.OP_READ);
+				sc.register(selector, SelectionKey.OP_READ);
 			}
 			// 读取客户端的请求信息
 			if (key.isReadable()) {
@@ -164,7 +166,6 @@ public class MultiplexerTimerServer implements Runnable {
 			writeBuffer.put(bytes);
 			writeBuffer.flip();
 			channel.write(writeBuffer);
-			writeBuffer.get();
 		}
 	}
 }

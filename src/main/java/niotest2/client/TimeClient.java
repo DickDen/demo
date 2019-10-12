@@ -1,14 +1,14 @@
-package niotest2;
+package niotest2.client;
 
 /**
  * @author : Mr.Deng
  * @description :
- * @create : 2019-09-19
+ * @create : 2019-10-08
  **/
-public class TimeServer {
+public class TimeClient {
 
 	public static void main(String[] args) {
-		int port = 8080;
+		int port = 54734;
 		if (args != null && args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -17,8 +17,8 @@ public class TimeServer {
 				port = 8888;
 			}
 		}
-		MultiplexerTimerServer timerServer = new MultiplexerTimerServer(port);
+		TimeClientHandle timeClientHandle = new TimeClientHandle("127.0.0.0", port);
 
-		new Thread(timerServer, "NIO-MultiplexerTimerServer-001").start();
+		new Thread(timeClientHandle, "TimeClient-001").start();
 	}
 }
