@@ -17,6 +17,7 @@ public class TimeClient {
 				port = 8888;
 			}
 		}
+		// 实际项目中，我们不需要独立的线程创建异步连接对象，因为底层都是通过JDK的系统回调实现的
 		AsyncTimeClientHandler timeClientHandle = new AsyncTimeClientHandler("127.0.0.0", port);
 
 		new Thread(timeClientHandle, "AIO-AsyncTimeClientHandler-001").start();
