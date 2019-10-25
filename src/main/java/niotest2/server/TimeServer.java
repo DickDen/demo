@@ -1,4 +1,4 @@
-package niotest2.service;
+package niotest2.server;
 
 /**
  * @author : Mr.Deng
