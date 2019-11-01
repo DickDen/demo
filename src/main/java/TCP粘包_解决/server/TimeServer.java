@@ -1,4 +1,4 @@
-package netty1.server;
+package TCP粘包_解决.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -8,6 +8,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 
 /**
  * @author : Mr.Deng
@@ -17,7 +19,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class TimeServer {
 
 	public static void main(String[] args) throws InterruptedException {
-		int port = 54734;
+		int port = 54735;
 		if (args != null && args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -59,10 +61,22 @@ public class TimeServer {
 
 	}
 
-	private class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
+	private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
 
 		@Override
 		protected void initChannel(SocketChannel socketChannel) {
+			// 新增两个解码器：LineBasedFrameDecoder + StringDecoder的组合解释按行切换的文本解码器，它被设计用来支持TCP的粘包和拆包
+			/**
+			 * LineBasedFrameDecoder的工作原理是它依次遍历ByteBuf中的可读字节，判断看时候有“\n”或者“\r\n”
+			 * 如果有，就以此为结束位置，从可读索引到结束位置区间的字节就组成了一行
+			 * 它是以换行符为结束标志的解码器，支持携带结束符或者不携带结束符两种解码方式，同时支持配置单行的最大长度
+			 * 如果连续读取到最大长度后仍然没有发现换行符，就会抛出异常，同时忽略之前读到的异常码流
+			 */
+			socketChannel.pipeline().addLast(new LineBasedFrameDecoder(1024));
+			/**
+			 * StringDecoder的功能是将接受到的对象转换成字符串，然后继续调用后面的Handler
+			 */
+			socketChannel.pipeline().addLast(new StringDecoder());
 			socketChannel.pipeline().addLast(new TimeServerHandler());
 		}
 	}

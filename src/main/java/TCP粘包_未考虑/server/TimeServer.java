@@ -1,4 +1,4 @@
-package netty1.server;
+package TCP粘包_未考虑.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -59,7 +59,7 @@ public class TimeServer {
 
 	}
 
-	private class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
+	private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
 
 		@Override
 		protected void initChannel(SocketChannel socketChannel) {

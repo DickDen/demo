@@ -1,13 +1,13 @@
 package netty1.server;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.util.Date;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+
+import java.util.Date;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * TimerServerHandler继承自ChannelHandlerAdapter
@@ -17,7 +17,7 @@ import io.netty.channel.ChannelHandlerContext;
  * @description :
  * @create : 2019-10-24
  **/
-public class TimerServerHandler extends ChannelHandlerAdapter {
+public class TimeServerHandler extends ChannelHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
