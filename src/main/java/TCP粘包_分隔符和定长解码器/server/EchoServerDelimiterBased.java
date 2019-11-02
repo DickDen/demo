@@ -15,7 +15,7 @@ import io.netty.handler.codec.string.StringDecoder;
 
 /**
  * @author : Mr.Deng
- * @description :
+ * @description : 分隔符解码器
  * @create : 2019-11-02
  **/
 public class EchoServerDelimiterBased {

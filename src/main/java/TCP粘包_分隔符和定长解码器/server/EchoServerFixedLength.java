@@ -1,8 +1,6 @@
 package TCP粘包_分隔符和定长解码器.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -15,7 +13,7 @@ import io.netty.handler.codec.string.StringDecoder;
 
 /**
  * @author : Mr.Deng
- * @description :
+ * @description : 定长解码器
  * @create : 2019-11-02
  **/
 public class EchoServerFixedLength {
@@ -56,7 +54,6 @@ public class EchoServerFixedLength {
 						 */
 						@Override
 						protected void initChannel(SocketChannel socketChannel) {
-							ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
 							// 利用FixedLengthFrameDecoder解码器，无论一次接受到多少数据报，它都会按照构造函数中设置的固定长度进行解码
 							// 如果是半包消息，FixedLengthFrameDecoder会缓存半包消息并等待下个包到达后进行拼包，直到读取到一个完整的包
 							socketChannel.pipeline().addLast(new FixedLengthFrameDecoder(20));

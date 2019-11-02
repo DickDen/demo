@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 /**
  * @author : Mr.Deng
- * @description :
+ * @description : 分隔符解码器
  * @create : 2019-11-02
  **/
 public class EchoServerHandlerDelimiterBased extends ChannelHandlerAdapter {

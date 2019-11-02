@@ -5,12 +5,10 @@ import io.netty.channel.ChannelHandlerContext;
 
 /**
  * @author : Mr.Deng
- * @description :
+ * @description : 定长解码器
  * @create : 2019-11-02
  **/
 public class EchoServerHandlerFixedLength extends ChannelHandlerAdapter {
-
-	private int counter = 0;
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
