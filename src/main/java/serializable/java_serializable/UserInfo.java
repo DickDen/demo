@@ -1,5 +1,7 @@
 package serializable.java_serializable;
 
+import org.msgpack.annotation.Message;
+
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
@@ -8,6 +10,7 @@ import java.nio.ByteBuffer;
  * @description : 用户信息
  * @create : 2019-11-02
  **/
+@Message
 public class UserInfo implements Serializable {
 
 	private static final long serialVersionUID = 7203225093658302101L;
