@@ -1,6 +1,8 @@
-package TCP粘包_解决.server;
+package tcp_messagepack.TCP粘包_分隔符和定长解码器.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -8,18 +10,18 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 
 /**
  * @author : Mr.Deng
- * @description : Netty时间服务器服务端
- * @create : 2019-10-23
+ * @description : 分隔符解码器
+ * @create : 2019-11-02
  **/
-public class TimeServer {
+public class EchoServerDelimiterBased {
 
 	public static void main(String[] args) throws InterruptedException {
-		int port = 54735;
+		int port = 54734;
 		if (args != null && args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -28,7 +30,7 @@ public class TimeServer {
 				port = 8888;
 			}
 		}
-		new TimeServer().bind(port);
+		new EchoServerDelimiterBased().bind(port);
 	}
 
 	private void bind(int port) throws InterruptedException {
@@ -44,10 +46,27 @@ public class TimeServer {
 					// 设置创建Channel为NioServerSocketChannel，它的功能对应于JDK NIO类库中的ServerSocketChannel类
 					.channel(NioServerSocketChannel.class)
 					// 设置NioServerSocketChannel的TCP参数
-					.option(ChannelOption.SO_BACKLOG, 1024)
-					// 绑定I/O事件的处理类ChildChannelHandler
-					// 它的作用类似于Reactor模式中的Handle类，主要作用于处理网络I/O事件，例如记录日志、对消息进行编解码
-					.childHandler(new ChildChannelHandler());
+					.option(ChannelOption.SO_BACKLOG, 1024).childHandler(new ChannelInitializer<SocketChannel>() {
+
+						/**
+						 * 首先创建分隔符缓存对象ByteBuf，本例使用“$_”作为分隔符
+						 * 
+						 * @param socketChannel
+						 *            socketChannel
+						 */
+						@Override
+						protected void initChannel(SocketChannel socketChannel) {
+							ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+							// 第一个参数1024表示单条消息的的最大长度，当达到改长度后仍然没有查找到分隔符，就抛出ToolLongFrameException异常
+							// 防止由于异常码流缺失分隔符导致的内存溢出，这是Netty解码器的可靠性保护；第二个参数就是分隔符缓存对象
+							// 由于DelimiterBasedFrameDecoder自动对请求消息进行了解码，后续的ChannelHandler接受到的msg对象就是个完整的消息包
+							socketChannel.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
+							// 第二个ChannelHandler是StringDecoder，它将ByteBuf解码成字符串对象
+							socketChannel.pipeline().addLast(new StringDecoder());
+							// 第三个EchoServerHandler接收到的msg消息就是解码后的字符串对象
+							socketChannel.pipeline().addLast(new EchoServerHandlerDelimiterBased());
+						}
+					});
 			// 绑定监听端口，调用它的同步阻塞方法sync等待绑定操作完成
 			// 完成之后Netty会返回一个ChannelFuture，它的作用类似于JDK的juc.Future，主要用于异步操作的通知回调
 			ChannelFuture f = b.bind(port).sync();
@@ -59,25 +78,5 @@ public class TimeServer {
 			workerGroup.shutdownGracefully();
 		}
 
-	}
-
-	private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
-
-		@Override
-		protected void initChannel(SocketChannel socketChannel) {
-			// 新增两个解码器：LineBasedFrameDecoder + StringDecoder的组合解释按行切换的文本解码器，它被设计用来支持TCP的粘包和拆包
-			/**
-			 * LineBasedFrameDecoder的工作原理是它依次遍历ByteBuf中的可读字节，判断看时候有“\n”或者“\r\n”
-			 * 如果有，就以此为结束位置，从可读索引到结束位置区间的字节就组成了一行
-			 * 它是以换行符为结束标志的解码器，支持携带结束符或者不携带结束符两种解码方式，同时支持配置单行的最大长度
-			 * 如果连续读取到最大长度后仍然没有发现换行符，就会抛出异常，同时忽略之前读到的异常码流
-			 */
-			socketChannel.pipeline().addLast(new LineBasedFrameDecoder(1024));
-			/**
-			 * StringDecoder的功能是将接受到的对象转换成字符串，然后继续调用后面的Handler
-			 */
-			socketChannel.pipeline().addLast(new StringDecoder());
-			socketChannel.pipeline().addLast(new TimeServerHandler());
-		}
 	}
 }

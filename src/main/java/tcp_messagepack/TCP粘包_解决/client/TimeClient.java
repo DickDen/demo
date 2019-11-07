@@ -1,4 +1,4 @@
-package TCP粘包_未考虑.client;
+package tcp_messagepack.TCP粘包_解决.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -8,6 +8,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 
 /**
  * @author : Mr.Deng
@@ -17,7 +19,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 public class TimeClient {
 
 	public static void main(String[] args) throws InterruptedException {
-		int port = 54734;
+		int port = 54735;
 		if (args != null && args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -41,7 +43,9 @@ public class TimeClient {
 
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new TimeClientHandler());
+					ch.pipeline().addLast(new LineBasedFrameDecoder(1024))
+							.addLast(new StringDecoder())
+							.addLast(new TimeClientHandler());
 				}
 			});
 			// 发起异步连接操作

@@ -1,4 +1,4 @@
-package TCP粘包_未考虑.server;
+package tcp_messagepack.TCP粘包_分隔符和定长解码器.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -8,16 +8,18 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 
 /**
  * @author : Mr.Deng
- * @description : Netty时间服务器服务端
- * @create : 2019-10-23
+ * @description : 定长解码器
+ * @create : 2019-11-02
  **/
-public class TimeServer {
+public class EchoServerFixedLength {
 
 	public static void main(String[] args) throws InterruptedException {
-		int port = 54734;
+		int port = 8080;
 		if (args != null && args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -26,7 +28,7 @@ public class TimeServer {
 				port = 8888;
 			}
 		}
-		new TimeServer().bind(port);
+		new EchoServerFixedLength().bind(port);
 	}
 
 	private void bind(int port) throws InterruptedException {
@@ -42,10 +44,25 @@ public class TimeServer {
 					// 设置创建Channel为NioServerSocketChannel，它的功能对应于JDK NIO类库中的ServerSocketChannel类
 					.channel(NioServerSocketChannel.class)
 					// 设置NioServerSocketChannel的TCP参数
-					.option(ChannelOption.SO_BACKLOG, 1024)
-					// 绑定I/O事件的处理类ChildChannelHandler
-					// 它的作用类似于Reactor模式中的Handle类，主要作用于处理网络I/O事件，例如记录日志、对消息进行编解码
-					.childHandler(new ChildChannelHandler());
+					.option(ChannelOption.SO_BACKLOG, 100).childHandler(new ChannelInitializer<SocketChannel>() {
+
+						/**
+						 * 首先创建分隔符缓存对象ByteBuf，本例使用“$_”作为分隔符
+						 * 
+						 * @param socketChannel
+						 *            socketChannel
+						 */
+						@Override
+						protected void initChannel(SocketChannel socketChannel) {
+							// 利用FixedLengthFrameDecoder解码器，无论一次接受到多少数据报，它都会按照构造函数中设置的固定长度进行解码
+							// 如果是半包消息，FixedLengthFrameDecoder会缓存半包消息并等待下个包到达后进行拼包，直到读取到一个完整的包
+							socketChannel.pipeline().addLast(new FixedLengthFrameDecoder(20));
+							// 第二个ChannelHandler是StringDecoder，它将ByteBuf解码成字符串对象
+							socketChannel.pipeline().addLast(new StringDecoder());
+							// 第三个EchoServerHandler接收到的msg消息就是解码后的字符串对象
+							socketChannel.pipeline().addLast(new EchoServerHandlerFixedLength());
+						}
+					});
 			// 绑定监听端口，调用它的同步阻塞方法sync等待绑定操作完成
 			// 完成之后Netty会返回一个ChannelFuture，它的作用类似于JDK的juc.Future，主要用于异步操作的通知回调
 			ChannelFuture f = b.bind(port).sync();
@@ -57,13 +74,5 @@ public class TimeServer {
 			workerGroup.shutdownGracefully();
 		}
 
-	}
-
-	private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
-
-		@Override
-		protected void initChannel(SocketChannel socketChannel) {
-			socketChannel.pipeline().addLast(new TimeServerHandler());
-		}
 	}
 }

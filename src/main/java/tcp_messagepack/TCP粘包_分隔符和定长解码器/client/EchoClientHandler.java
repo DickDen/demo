@@ -1,34 +1,26 @@
-package TCP粘包_解决.client;
+package tcp_messagepack.TCP粘包_分隔符和定长解码器.client;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
-import java.util.logging.Logger;
-
 /**
- * 
- * 
- * 
  * 
  * @author : Mr.Deng
  * @description :
  * @create : 2019-10-25
  **/
-public class TimeClientHandler extends ChannelHandlerAdapter {
-
-	private static final Logger LOGGER = Logger.getLogger(TimeClientHandler.class.getName());
+public class EchoClientHandler extends ChannelHandlerAdapter {
 
 	private int counter;
 
-	private byte[] req;
+	private static final String ECHO_REQ = "Hi~ o(*￣▽￣*)ブ，Mr.Deng，Welcome to Netty.$_";
 
 	/**
 	 * Create a client-side handler.
 	 */
-	public TimeClientHandler() {
-		req = ("QUERY TIME ORDER" + System.getProperty("line.separator")).getBytes();
+	EchoClientHandler() {
+
 	}
 
 	/**
@@ -40,16 +32,14 @@ public class TimeClientHandler extends ChannelHandlerAdapter {
 	 */
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) {
-		ByteBuf message;
-		for (int i = 0; i < 100; i++) {
-			message = Unpooled.buffer(req.length);
-			message.writeBytes(req);
-			ctx.writeAndFlush(message);
+		for (int i = 0; i < 10; i++) {
+			ctx.writeAndFlush(Unpooled.copiedBuffer(ECHO_REQ.getBytes()));
 		}
 	}
 
 	/**
-	 * 当客户端返回应答消息时，channelRead方法会被调用，从ByteBuf中读取并打印应答消息
+	 * 当客户端返回应答消息时，channelRead方法会被调用
+	 * 从ByteBuf中读取并打印应答消息
 	 * 
 	 * @param ctx
 	 *            ChannelHandlerContext
@@ -58,8 +48,12 @@ public class TimeClientHandler extends ChannelHandlerAdapter {
 	 */
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
-		String body = (String) msg;
-		System.out.println("Now is ：" + body + " ; the counter is : " + ++counter);
+		System.out.println("The is " + ++counter + " times receive server : [" + msg + "]");
+	}
+
+	@Override
+	public void channelReadComplete(ChannelHandlerContext ctx) {
+		ctx.flush();
 	}
 
 	/**
@@ -72,7 +66,7 @@ public class TimeClientHandler extends ChannelHandlerAdapter {
 	 */
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-		LOGGER.warning("Unexpected expected from downstream : " + cause.getMessage());
+		cause.printStackTrace();
 		ctx.close();
 	}
 

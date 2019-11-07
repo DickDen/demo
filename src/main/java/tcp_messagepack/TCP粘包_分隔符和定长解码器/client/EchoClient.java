@@ -1,4 +1,4 @@
-package TCP粘包_分隔符和定长解码器.client;
+package tcp_messagepack.TCP粘包_分隔符和定长解码器.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;

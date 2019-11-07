@@ -20,12 +20,18 @@ public class EchoServerHandler extends ChannelHandlerAdapter {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
+			ctx.close();
 		}
 	}
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-		// TODO Auto-generated method stub
 		ctx.flush();
+	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+		// 当异常发生时，关闭ChannelHandlerContext，释放ChannelHandlerContext相关联的句柄等资源
+		ctx.close();
 	}
 }

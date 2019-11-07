@@ -1,4 +1,4 @@
-package TCP粘包_分隔符和定长解码器.server;
+package tcp_messagepack.TCP粘包_分隔符和定长解码器.server;
 
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
