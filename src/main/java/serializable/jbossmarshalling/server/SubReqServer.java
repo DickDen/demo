@@ -1,4 +1,4 @@
-package serializable.googleprotobuf.server;
+package serializable.jbossmarshalling.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -8,11 +8,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.protobuf.ProtobufDecoder;
-import io.netty.handler.codec.protobuf.ProtobufEncoder;
-import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
-import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
-import serializable.googleprotobuf.SubscribeReqProto;
+import serializable.jbossmarshalling.MarshallingCodeFactory;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author : Mr.Deng
@@ -22,7 +20,7 @@ import serializable.googleprotobuf.SubscribeReqProto;
 public class SubReqServer {
 
 	public static void main(String[] args) throws Exception {
-		int port = 15453;
+		int port = 15474;
 		new SubReqServer().bind(port);
 
 	}
@@ -36,33 +34,28 @@ public class SubReqServer {
 			bootstrap.group(bossGroup, workGroup)
 					.channel(NioServerSocketChannel.class)
 					.option(ChannelOption.SO_BACKLOG, 100)
+					.childOption(ChannelOption.SO_KEEPALIVE,Boolean.TRUE)
+					.localAddress( new InetSocketAddress( port ) )
 					.childHandler(new ChannelInitializer<SocketChannel>() {
 
 				@Override
-				protected void initChannel(SocketChannel ch)  {
-					// 向ChannelPipeline添加ProtobufVarint32FrameDecoder，它的主要作用于半包处理
-					ch.pipeline().addLast(new ProtobufVarint32FrameDecoder());
-					// 添加ProtobufDecoder解码器，它的参数com.google.protobuf.MessageLite，
-					// 实际上就是要告诉ProtobufDecoder需要解码的目标类是什么，否则仅仅从字节数组中是无法判断出要解码的目标类型信息
-					ch.pipeline().addLast(new ProtobufDecoder(SubscribeReqProto.SubscribeReq.getDefaultInstance()));
-					ch.pipeline().addLast(new ProtobufVarint32LengthFieldPrepender());
-					// 对消息进行自动解码
-					ch.pipeline().addLast(new ProtobufEncoder());
+				protected void initChannel(SocketChannel ch) {
+					// 通过MarshallingCodeFactory工厂类创建Marshalling解码器MarshallingDecoder，加入到ChannelPipeline中
+					ch.pipeline().addLast(MarshallingCodeFactory.buildMarshallingDecoder());
+					// 通过MarshallingCodeFactory工厂类创建Marshalling解码器MarshallingEncoder，加入到ChannelPipeline中
+					ch.pipeline().addLast(MarshallingCodeFactory.buildMarshallingEncoder());
 					ch.pipeline().addLast(new SubReqServerHandler());
-
 				}
 			});
 			// 绑定端口，等待同步成功
 			ChannelFuture f = bootstrap.bind(port).sync();
 			// 等待服务端关闭监听端口
 			f.channel().closeFuture().sync();
-
 		} finally {
 			// 释放线程池资源
 			bossGroup.shutdownGracefully();
 			workGroup.shutdownGracefully();
-
 		}
-
 	}
 }
+

@@ -1,11 +1,8 @@
-package serializable.googleprotobuf.client;
+package serializable.jbossmarshalling.client;
 
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import serializable.googleprotobuf.SubscribeReqProto;
-
-import java.util.ArrayList;
-import java.util.List;
+import serializable.jbossmarshalling.SubscribeReq;
 
 /**
  * @author : Mr.Deng
@@ -28,22 +25,20 @@ public class SubReqClientHandler extends ChannelHandlerAdapter {
 	public void channelActive(ChannelHandlerContext ctx) {
 		for (int i = 0; i < 10; i++) {
 			ctx.write(buildSubReq(i));
+			System.out.println(i);
 		}
 		ctx.flush();
 		System.out.println("-----------------send over-----------------");
 	}
 
-	private SubscribeReqProto.SubscribeReq buildSubReq(int i) {
-		SubscribeReqProto.SubscribeReq.Builder builder = SubscribeReqProto.SubscribeReq.newBuilder();
-		builder.setSubReqId(i);
-		builder.setUserName("Mr.Deng");
-		builder.setProductName("Netty Book For Protobuf");
-		List<String> address = new ArrayList<>();
-		address.add("NanJing YuHuaTai");
-		address.add("BeiJing LiuLiChang");
-		address.add("ShenZhen HongShuLin");
-		builder.addAllAddress(address);
-		return builder.build();
+	private SubscribeReq buildSubReq(int i) {
+		SubscribeReq req = new SubscribeReq();
+		req.setAddress("BeiJing ChaoYang");
+		req.setPhoneNumber("13588888888");
+		req.setProductName("Netty Book For Marshalling");
+		req.setSubReqId(i);
+		req.setUserName("Mr.Deng");
+		return req;
 	}
 
 	/**
@@ -76,7 +71,7 @@ public class SubReqClientHandler extends ChannelHandlerAdapter {
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
-		ctx.flush();
+		System.out.println("client:通道可读完成");
 	}
 
 }

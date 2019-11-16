@@ -693,6 +693,7 @@ public class SubscribeRespProto {
 			/**
 			 * <code>required string desc = 3;</code>
 			 */
+			@Override
 			public com.google.protobuf.ByteString getDescBytes() {
 				Object ref = desc_;
 				if (ref instanceof String) {

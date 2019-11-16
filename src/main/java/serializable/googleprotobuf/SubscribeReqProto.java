@@ -81,7 +81,7 @@ public class SubscribeReqProto {
 			super(builder);
 		}
 
-		private SubscribeReq() {
+		public SubscribeReq() {
 			subReqId_ = 0;
 			userName_ = "";
 			productName_ = "";
@@ -735,6 +735,7 @@ public class SubscribeReqProto {
 			/**
 			 * <code>string productName = 3;</code>
 			 */
+			@Override
 			public String getProductName() {
 				Object ref = productName_;
 				if (!(ref instanceof String)) {
